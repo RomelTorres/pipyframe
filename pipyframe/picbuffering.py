@@ -49,12 +49,18 @@ class PicBuffering:
             if path not in self.seen_picture:
                 self.add_to_seen(path, place)
 
-    def get_last_from_seen(self):
+    def get_last_from_seen(self, num=1):
+
         """
             This function gets from the last picture from the last seen queue
             :return the last seen picture path
         """
-        return self.seen_picture.popleft()
+        pics = []
+        try:
+            pics.append(self.seen_picture.popleft())
+        except IndexError:
+            pics.append(None)
+        return pics
    
     def get_first_from_seen(self):
        """
@@ -76,7 +82,7 @@ class PicBuffering:
                 pics.append(self.next_picture.pop())
             except IndexError:
                 # It is used as cyclic queue, load the first pictures back to the next
-                pics.append(self.get_first_from_seen())
+                pics.append(self.get_first_from_seen()[0])
         # Add back to 
         return pics
 
