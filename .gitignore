@@ -121,5 +121,5 @@ Session.vim
 .netrwhist
 # auto-generated tag files
 tags
-
-# End of https://www.gitignore.io/api/linux,vim,python
+# Application related ignores
+# *state.json

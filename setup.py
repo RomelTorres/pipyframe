@@ -17,6 +17,7 @@ setup(
     license = "MIT",
     keywords = "kivy raspberrypi frame slideshow",
     url = "https://github.com/RomelTorres/pipyframe",
+    install_requires=['tinydb'],
     packages=['pipyframe', 'tests'],
     long_description=read('README'),
 )
