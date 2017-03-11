@@ -4,9 +4,11 @@ from kivy.factory import Factory
 from kivy.uix.image import Image
 from kivy.core.window import Window
 from kivy.clock import Clock
-from picbuffering import PicBuffering
 from ConfigParser import SafeConfigParser
 from random import randint
+from picbuffering import PicBuffering
+from dbhandler import DbHandler
+import os
 
 class CarouselViewer(Carousel):
     """
@@ -30,7 +32,19 @@ class CarouselViewer(Carousel):
         allow_shuffle = self.ini.getboolean('FrameBehaviour','ShufflePics')
         # This is the size of loaded slides from the Carousel kivy component
         self.max_slides = self.ini.getint('FrameBehaviour','BufferSize')
-        self.picbuffers = PicBuffering()
+        use_database = self.ini.get('FrameConfiguration','UseDatabase')
+        if use_database:
+            self.database = DbHandler(self.ini.get('FrameConfiguration','DatabasePath'))
+        else:
+            self.disabled = None
+        self.picbuffers = PicBuffering(database=self.database)
+        # Get a variable for storing the last index
+        self.previous_idx = 4
+        # At the beginning do not load pictures into the seen queue (until the index_update
+        # reaches zero or we have ran out of pictures in the seen queue)
+        self.do_not_load = True
+        # The current slides direction
+        self.slide_direction = 'up'
         # Add pictures to buffer
         for folder in folders:
             self.picbuffers.add_from_folder(folder, allow_shuffle=allow_shuffle)
@@ -47,13 +61,11 @@ class CarouselViewer(Carousel):
         for path in self.current_paths:
             img = Image(source=path,allow_stretch=True, size=Window.size, nocache=True)
             self.images.append(img)
+        # We add the widgets in a separate loop, because this will trigger an on_index event
+        for img in self.images:     
             self.add_widget(img)
+        # Schedule the clock at the very end
         self.clk = Clock.schedule_interval(self.load_next_cb, self.delay_pics)
-        # Get a variable for storing the last index
-        self.previous_index = 0
-        # At the beginning do not load pictures into the seen queue (until the index_update
-        # reaches zero or we have ran out of pictures in the seen queue)
-        self.do_not_load = True
 
     def get_random_direction(self):
         """
@@ -62,7 +74,7 @@ class CarouselViewer(Carousel):
         return self.possible_directions[randint(0,len(self.possible_directions) - 1)]
 
     def load_next_cb(self, dt):
-        """ 
+        """
             Callback for the load next picture
         """
         self.load_next()
@@ -73,32 +85,47 @@ class CarouselViewer(Carousel):
             Overloaded from the on_function in the caroussel class
         """
         super(CarouselViewer, self).on_index(*args)
+        # Get the direction of the sliding
+        slide_direction = 'up' if (self.previous_idx + 1) % self.max_slides == self.index else 'down'
+        if self.slide_direction != slide_direction:
+            direction_change = True
+        else:
+            direction_change = False
+        self.slide_direction = slide_direction
         # Get the current index to update
         index_update = (self.index + 3) % self.max_slides
         # if we have rocked aroud once, we can load pictures
-        if self.index == 0:
+        if index_update == 0:
             self.do_not_load = False
-        # Get the direction of the sliding
-        slide_direction = 'up' if (self.previous_index + 1) % self.max_slides == self.index else 'down'
         # Check if we did our first loop and set it to false
-        if (slide_direction == 'up'):
+        if (self.slide_direction == 'up'):
             # Allow looping
             self.loop = True
             # Get the picture from the top
-            src = self.picbuffers.get_next_picture()[0]
             if not self.do_not_load:
-                self.images[index_update].source = src
                 # Save the current image to the seen queue
                 self.picbuffers.add_to_seen(self.current_paths[index_update])
+                src = self.picbuffers.get_next_picture()[0]
+                self.images[index_update].source = src
                 self.current_paths[index_update] = src
         else:
             # Save the current image to the next queue
             src = self.picbuffers.get_last_from_seen()[0]
+            # IF the direction has changed we gotta undo the previous
+            # step
+            if direction_change:
+                undo_index_update = (self.previous_idx + 3) % self.max_slides
+                to_next = self.current_paths[undo_index_update]
+                self.picbuffers.add_to_next(to_next, 'front')
+                self.images[undo_index_update].source = src
+                self.current_paths[undo_index_update] = src
+                src = self.picbuffers.get_last_from_seen()[0]
             if src:
                 # Allow looping
                 self.loop = True
                 # If something is found add it
-                self.picbuffers.add_to_next(self.current_paths[index_update],'front')
+                to_next = self.current_paths[index_update]
+                self.picbuffers.add_to_next(to_next,'front')
                 self.images[index_update].source = src
                 self.current_paths[index_update] = src
             else:
@@ -107,7 +134,7 @@ class CarouselViewer(Carousel):
                 # Don't load pictures in the seen queue
                 self.do_not_load = True
         # Save the last index
-        self.previous_index = self.index
+        self.previous_idx = self.index
         if self.random_direction:
             self.direction = self.get_random_direction()
 

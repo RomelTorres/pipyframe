@@ -11,15 +11,16 @@ import os
 
 class PicBuffering:
 
-    def __init__(self, buffer_limit=None):
-        """ 
+    def __init__(self, buffer_limit=None, database=None):
+        """
         Init function
         :param buffer_limit None to no limit or the limit
-        """ 
+        :param The handler to the database being in use
+        """
         self.seen_picture = deque()
         self.next_picture = deque()
         self.buffer_limit = buffer_limit
-
+        self.database = database
    
     def add_to_seen(self, path, place='back'):
         """
@@ -33,7 +34,7 @@ class PicBuffering:
                 # If the queue is full take out the last saved path
                 self.seen_picture.popleft()
         # Add the picture to the queue, depending on the place
-        if place == 'back':
+        if place in 'back':
             self.seen_picture.append(path)
         else:
             self.seen_picture.appendleft(path)
@@ -57,7 +58,7 @@ class PicBuffering:
         """
         pics = []
         try:
-            pics.append(self.seen_picture.popleft())
+            pics.append(self.seen_picture.pop())
         except IndexError:
             pics.append(None)
         return pics
@@ -68,7 +69,7 @@ class PicBuffering:
             queue
             :return The first picture in the queue
        """
-       return self.seen_picture.pop()
+       return self.seen_picture.popleft()
 
     def get_next_picture(self,num=1):
         """ 
@@ -79,10 +80,15 @@ class PicBuffering:
         pics = []
         for idx in range(num):
             try:
-                pics.append(self.next_picture.pop())
+                pic = self.next_picture.popleft()
+                pics.append(pic)
             except IndexError:
-                # It is used as cyclic queue, load the first pictures back to the next
-                pics.append(self.get_first_from_seen()[0])
+                # Add the already seen pictures back to the next picture queue
+                self.next_picture = self.seen_picture
+                # Have an empty queue again for the seen pics
+                self.seen_picture = deque()
+                pic = self.next_picture.popleft()
+                pics.append(pic)
         # Add back to 
         return pics
 
@@ -99,12 +105,12 @@ class PicBuffering:
                     # If the queue is full take out the last saved path
                     self.next_picture.popleft()
             # Check that this picture is not in the seen pictures
-            if place == 'back':
+            if place in 'back':
                 self.next_picture.append(path)
             else:
                 self.next_picture.appendleft(path)
 
-    def add_pics_to_next(self, paths, place= 'front'):
+    def add_pics_to_next(self, paths, place='back'):
         """
             This function adds several pictures to the next queue
             :param place: either add at the 'front' or the 'back'
@@ -123,10 +129,15 @@ class PicBuffering:
             files = [os.path.join(path, file) for (path, dirs, files) in os.walk(pathin) 
                      for file in files if 'image' or 'video' in  mag.id_filename(file)]
         if allow_shuffle:
-            shuffle(files)        
+            shuffle(files)
         for path in files:
             # Check that the new pictures are not in the next picture queue
             if path not in self.next_picture:
+                # If a database has been given, add it to it
+                if self.database is not None:
+                    blacklisted = True if self.database.is_pic_blisted(path) else False
+                    if not blacklisted:
+                        self.database.add_picture_to_db(path, os.path.splitext(path)[1])
                 self.add_to_next(path)
 
 
