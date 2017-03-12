@@ -122,4 +122,4 @@ Session.vim
 # auto-generated tag files
 tags
 # Application related ignores
-# *state.json
+*state.json
