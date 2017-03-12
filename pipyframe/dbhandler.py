@@ -18,7 +18,7 @@ class DbPicture(object):
         self.ext = ext
         self.rotation = rotation
         self.blacklist = blacklist
-    
+
     def dump_from_dict(self, dictionary):
         """
             This method dumps the data in a dictionary to the class attributes
@@ -49,9 +49,10 @@ class DbHandler():
         if result:
             picture = DbPicture()
             picture.dump_from_dict(result[0])
+            return picture
         else:
             return None
-
+        
     def _update_field(self, path, field, value):
         """
             This function updates a field in a picture in the database
@@ -60,8 +61,14 @@ class DbHandler():
             :value the value of the field in question
         """
         query = Query()
-        #update_str = {'blacklist':value}
-        self.database.update({'blacklist':value}, query.path = path)
+        # Get current picture from db  
+        pic = self._pic_from_db(path)
+        # Create a new dictionary for the update with the items from the picture
+        # loaded from database
+        update_dict = {k: value for k, v in pic.__dict__.items() if k == field}
+        print(update_dict)
+        # Run the update query
+        self.database.update(update_dict, query.path == path)
 
     def add_picture_to_db(self, path, ext):
         """ This Method adds a picture to the database
@@ -74,7 +81,7 @@ class DbHandler():
             # Since tinydb expects data as a dictionary read the object as one
             dinsert = picture.__dict__
             self.database.insert(dinsert)
-    
+ 
     def is_pic_blisted(self, path):
         """
             This function asserts if a given picture has been blacklisted
@@ -94,7 +101,4 @@ class DbHandler():
             :param bl if true the picture will be blacklisted, if false 
             the attribute will be set to false
         """
-        self._update_field(path,'blacklist',bl)
-
-
-
+        self._update_field(path,'blacklist', bl)

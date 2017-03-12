@@ -149,11 +149,15 @@ class CarouselViewer(Carousel):
         Clock.unschedule(self.clk)
         # call the parent class function
         if touch.is_double_tap:
-            print('Oh double tap')
-            print('Blacklisting {}-> {}'.format(self.index, self.current_paths[self.index]))
-            # After blacklisting bring the next picture
-            self.load_next()
-        super(CarouselViewer, self).on_touch_down(touch)
+            self.picbuffers.remove_blacklisted(self.current_paths[self.index])
+            # Get the next picture and load it immediately
+            src = self.picbuffers.get_next_picture()[0]
+            self.images[self.index].source = src
+            self.current_paths[self.index] = src
+            # Call the parent method to fo whatever was called to do
+            super(CarouselViewer, self).on_touch_down(touch)
+        else:
+            super(CarouselViewer, self).on_touch_down(touch)
     
     def on_touch_up(self, touch):
         """

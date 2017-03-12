@@ -140,5 +140,26 @@ class PicBuffering:
                         self.database.add_picture_to_db(path, os.path.splitext(path)[1])
                 self.add_to_next(path)
 
-
-
+    def remove_blacklisted(self, path):
+        """
+            This function removes a blacklisted figure from the database and from the 
+            queues
+            :param path the image's path
+            :returns True if removed, false if not present in any of the queues
+        """
+        # First blacklist it in the database
+        self.database.blacklist_pic(path)
+        # Trye removing it from the internal queues
+        try:
+            # Try removing it from the seen queue
+            self.seen_picture.remove(path)
+            return True
+        except ValueError:
+            pass
+        try:
+            self.next_picture.remove(path)
+            return True
+        except ValueError:
+            pass
+        # Ig you get until here the picture has never been in the queue
+        return False
