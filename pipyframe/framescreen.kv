@@ -1,0 +1,11 @@
+#:kivy 1.8.0
+
+<FrameScreen>
+    ClockViewer:
+        scale_max: 100
+        size_hint:None, None
+        size:(128,128)
+        pos:(root.width - 256, -20)
+        Label:
+            id: ctimer_label
+            size: self.texture_size 
