@@ -4,10 +4,10 @@ from kivy.factory import Factory
 from kivy.uix.image import Image
 from kivy.core.window import Window
 from kivy.clock import Clock
-from ConfigParser import SafeConfigParser
 from random import randint
 from picbuffering import PicBuffering
 from dbhandler import DbHandler
+from frame_config import FrameConfiguration
 import os
 
 class CarouselViewer(Carousel):
@@ -20,21 +20,9 @@ class CarouselViewer(Carousel):
             Init function, calls the parent class plus images to be shown
         """
         super(CarouselViewer, self).__init__(**kwargs)
-        self.ini = SafeConfigParser()
-        # Read configuration file
-        self.ini.read('../config.ini')
-        # Get initial configured folders to read pictures from
-        folders = [folder for folder in self.ini.get('FrameConfiguration','Folders').split('\n') if folder]
-        # Get delay between showing pictures
-        self.delay_pics = self.ini.getint('FrameBehaviour','delayBetweenPics')
-        self.random_direction = self.ini.getboolean('FrameBehaviour','RandomDirection')
-        self.possible_directions = [d for d in self.ini.get('FrameBehaviour','PossibleDirections').split(',') if d]
-        allow_shuffle = self.ini.getboolean('FrameBehaviour','ShufflePics')
-        # This is the size of loaded slides from the Carousel kivy component
-        self.max_slides = self.ini.getint('FrameBehaviour','BufferSize')
-        use_database = self.ini.get('FrameConfiguration','UseDatabase')
-        if use_database:
-            self.database = DbHandler(self.ini.get('FrameConfiguration','DatabasePath'))
+        self.conf = FrameConfiguration()
+        if self.conf.use_database:
+            self.database = DbHandler(self.conf.database_path)
         else:
             self.disabled = None
         self.picbuffers = PicBuffering(database=self.database)
@@ -46,16 +34,16 @@ class CarouselViewer(Carousel):
         # The current slides direction
         self.slide_direction = 'up'
         # Add pictures to buffer
-        for folder in folders:
-            self.picbuffers.add_from_folder(folder, allow_shuffle=allow_shuffle)
+        for folder in self.conf.configured_folders:
+            self.picbuffers.add_from_folder(folder, allow_shuffle=self.conf.allow_shuffle)
         # If allowed set a random direction for the pictures to show
-        if self.random_direction:
+        if self.conf.random_direction:
             self.direction = self.get_random_direction()
         else:
-            self.direction = self.possible_directions[0]    
+            self.direction = self.conf.possible_directions[0]    
         self.loop = False
         # Get from the buffer the first pictures to show
-        self.current_paths = self.picbuffers.get_next_picture(num=self.max_slides)
+        self.current_paths = self.picbuffers.get_next_picture(num=self.conf.max_slides)
         # Create the firs images that are going to be shown 
         self.images = []
         for path in self.current_paths:
@@ -65,13 +53,13 @@ class CarouselViewer(Carousel):
         for img in self.images:     
             self.add_widget(img)
         # Schedule the clock at the very end
-        self.clk = Clock.schedule_interval(self.load_next_cb, self.delay_pics)
+        self.clk = Clock.schedule_interval(self.load_next_cb, self.conf.delay_pics)
 
     def get_random_direction(self):
         """
             Function to get a random direction from the available list of directions
         """
-        return self.possible_directions[randint(0,len(self.possible_directions) - 1)]
+        return self.conf.possible_directions[randint(0,len(self.conf.possible_directions) - 1)]
 
     def load_next_cb(self, dt):
         """
@@ -86,14 +74,14 @@ class CarouselViewer(Carousel):
         """
         super(CarouselViewer, self).on_index(*args)
         # Get the direction of the sliding
-        slide_direction = 'up' if (self.previous_idx + 1) % self.max_slides == self.index else 'down'
+        slide_direction = 'up' if (self.previous_idx + 1) % self.conf.max_slides == self.index else 'down'
         if self.slide_direction != slide_direction:
             direction_change = True
         else:
             direction_change = False
         self.slide_direction = slide_direction
         # Get the current index to update
-        index_update = (self.index + 3) % self.max_slides
+        index_update = (self.index + 3) % self.conf.max_slides
         # if we have rocked aroud once, we can load pictures
         if index_update == 0:
             self.do_not_load = False
@@ -114,7 +102,7 @@ class CarouselViewer(Carousel):
             # IF the direction has changed we gotta undo the previous
             # step
             if direction_change:
-                undo_index_update = (self.previous_idx + 3) % self.max_slides
+                undo_index_update = (self.previous_idx + 3) % self.conf.max_slides
                 to_next = self.current_paths[undo_index_update]
                 self.picbuffers.add_to_next(to_next, 'front')
                 self.images[undo_index_update].source = src
@@ -135,7 +123,7 @@ class CarouselViewer(Carousel):
                 self.do_not_load = True
         # Save the last index
         self.previous_idx = self.index
-        if self.random_direction:
+        if self.conf.random_direction:
             self.direction = self.get_random_direction()
 
     def on_touch_down(self, touch):
@@ -164,7 +152,7 @@ class CarouselViewer(Carousel):
             Overload the on_touch_up to restart the clock showing pictures
         """
         # Reschedule the clock
-        self.clk = Clock.schedule_interval(self.load_next_cb, self.delay_pics)
+        self.clk = Clock.schedule_interval(self.load_next_cb, self.conf.delay_pics)
         super(CarouselViewer, self).on_touch_up(touch)    
 
 class FrameApp(App):
