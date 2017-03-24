@@ -9,10 +9,7 @@ class FrameScreen(FloatLayout):
     """
         This class handles the frame application
     """
-    def __init__(self, **kwargs):
-        super(FrameScreen, self).__init__(**kwargs)
-        self.cviewer = CarouselViewer()
-        self.add_widget(self.cviewer)
+    pass
 
 class FrameScreenApp(App):
     def build(self):

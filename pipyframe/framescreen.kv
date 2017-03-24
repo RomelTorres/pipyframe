@@ -1,19 +1,33 @@
 #:kivy 1.8.0
-
 <FrameScreen>
+    CarouselViewer:
+        auto_bring_to_front: False
     ClockViewer:
-        scale_max: 100
-        size_hint:None, None
-        size:(128,128)
-        pos:(root.width - 256, -20)
+        id:clock_viewer
+        auto_bring_to_front: True
+        pos:(root.width - ctimer_label.width - 120, 20)
+        size_hint:(None,None)
         Label:
             id: ctimer_label
-            size: self.texture_size 
+            do_collide_after_children: True
+            markup:True
+            font_name:'../docs/fonts/bevan/Bevan-Regular.ttf'
+            size: self.texture_size
+            text:clock_viewer.ctime_text
     WeatherViewer:
-        scale_max: 100
-        size_hint:None, None
-        size:(128,128)
-        pos:(80, root.height - 100)
+        id:weather_viewer
+        auto_bring_to_front: True
+        pos:(60,10)
+        size_hint:(None,None)
+        size:(180,180)
         Label:
             id: cweather_label
-            size: self.texture_size 
+            markup:True
+            size:self.texture_size
+            text:weather_viewer.weather_text
+            font_name:'../docs/fonts/bevan/Bevan-Regular.ttf'
+            pos:(0, -weather_viewer.height/2 + 20)
+        Image:
+            id: weather_image
+            pos:(0,0)
+            source:weather_viewer.weather_icon
