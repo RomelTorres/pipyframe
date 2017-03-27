@@ -21,6 +21,7 @@ class CarouselViewer(Carousel):
         """
         super(CarouselViewer, self).__init__(**kwargs)
         self.conf = FrameConfiguration()
+        print('We got db path {}'.format(kwargs))
         if self.conf.use_database:
             self.database = DbHandler(self.conf.database_path)
         else:
@@ -34,8 +35,7 @@ class CarouselViewer(Carousel):
         # The current slides direction
         self.slide_direction = 'up'
         # Add pictures to buffer
-        for folder in self.conf.configured_folders:
-            self.picbuffers.add_from_folder(folder, allow_shuffle=self.conf.allow_shuffle)
+        self.picbuffers.add_from_folder(self.conf.configured_folder, allow_shuffle=self.conf.allow_shuffle)
         # If allowed set a random direction for the pictures to show
         if self.conf.random_direction:
             self.direction = self.get_random_direction()

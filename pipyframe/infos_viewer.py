@@ -17,7 +17,9 @@ class WeatherViewer(ScatterLayout):
     """
     def __init__(self, **kwargs):
         super(WeatherViewer, self).__init__(**kwargs)
+        print('kwargs: {}'.format(kwargs))
         # Allow the Viewer tobe on the fron when touched
+        
         self.auto_bring_to_front = True
         api_key = ''
         with open('../openweathermap_key','r') as f:
