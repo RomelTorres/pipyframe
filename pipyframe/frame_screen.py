@@ -13,9 +13,13 @@ class FrameScreen(FloatLayout):
 class FrameScreenApp(App):
     def build(self):
         return FrameScreen()
-    
+    #TODO: ALL this has to be improved to check properly for the file
+    def get_application_config(self):
+        return ('../config.ini')
+
     def build_config(self, config):
         config.read('../config.ini')
+
 
 
     def build_settings(self, settings):

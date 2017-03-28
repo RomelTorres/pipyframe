@@ -5,6 +5,7 @@ from kivy.uix.scatter import Scatter
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.image import Image
 from kivy.uix.gridlayout import GridLayout
+from frame_config import FrameConfiguration
 from math import ceil
 import time
 import os
@@ -17,14 +18,10 @@ class WeatherViewer(ScatterLayout):
     """
     def __init__(self, **kwargs):
         super(WeatherViewer, self).__init__(**kwargs)
-        print('kwargs: {}'.format(kwargs))
         # Allow the Viewer tobe on the fron when touched
-        
+        self.conf = FrameConfiguration() 
         self.auto_bring_to_front = True
-        api_key = ''
-        with open('../openweathermap_key','r') as f:
-            api_key = ''.join(f.readlines()).strip()
-        owm = pyowm.OWM(api_key)
+        owm = pyowm.OWM(self.conf.api_key)
         self.city_weather = owm.weather_at_place('Lingen,DE')
         self.weather_icon = self._get_current_weather_image()
         self.weather_text = self._get_current_weather()
@@ -58,6 +55,7 @@ class WeatherViewer(ScatterLayout):
         #TODO: This has to be tested to always find the incons and be coonfigurable
         path =  os.path.join('../docs/weather_icons','{}.png'.format(icon_id))
         return path
+
     def _get_current_weather_image(self):
         weather = self.city_weather.get_weather()
         icon = weather.get_weather_icon_name()
@@ -75,6 +73,7 @@ class ClockViewer(ScatterLayout):
     def __init__(self, **kwargs):
         super(ClockViewer, self).__init__(**kwargs)
         # Allow it to get always into the front on being touched
+        self.conf = FrameConfiguration()
         self.auto_bring_to_front = True
         self.ctime_text = self._get_current_date()
         self.clk = Clock.schedule_interval(self.update_time, 1)

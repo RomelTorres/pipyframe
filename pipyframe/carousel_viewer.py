@@ -21,7 +21,6 @@ class CarouselViewer(Carousel):
         """
         super(CarouselViewer, self).__init__(**kwargs)
         self.conf = FrameConfiguration()
-        print('We got db path {}'.format(kwargs))
         if self.conf.use_database:
             self.database = DbHandler(self.conf.database_path)
         else:
