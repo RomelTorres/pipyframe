@@ -12,9 +12,12 @@ class FrameScreen(FloatLayout):
     pass
 class FrameScreenApp(App):
     def build(self):
-        self.config.read('../config.ini')
         return FrameScreen()
     
+    def build_config(self, config):
+        config.read('../config.ini')
+
+
     def build_settings(self, settings):
         #TODO: Add a function looking for this json file
         settings.add_json_panel('Frame Settings', self.config,'../settings.json')
