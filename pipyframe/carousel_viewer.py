@@ -1,20 +1,68 @@
-from kivy.app import App
+from kivy.properties import ListProperty
+from kivy.graphics.context_instructions import Color
+from kivy.graphics import Rectangle
 from kivy.uix.carousel import Carousel
 from kivy.factory import Factory
 from kivy.uix.image import Image
 from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.uix.floatlayout import FloatLayout
+from colorthief import ColorThief
 from random import randint
 from picbuffering import PicBuffering
 from dbhandler import DbHandler
 from frame_config import FrameConfiguration
 import os
+import timeit
+
+class FullImage(FloatLayout):
+    """
+        This class handles the image to show the user, with an interactive 
+        background generation
+    """
+    background_color = ListProperty([1, 1, 1, 1])
+    
+    def __init__(self, **kwargs):
+        super(FullImage, self).__init__(**kwargs)
+        self.conf = FrameConfiguration()
+        self.image = Image(allow_stretch=True, nocache=True)
+        self.bcolor = Color(self.background_color)
+        self.canvas.add(self.bcolor)
+        self.canvas.add(Rectangle(pos=self.pos, size=Window.size))
+        self.add_widget(self.image)
+
+    def _get_back_color(self, path, quality):
+        """
+            Grab the most predominant colour from a picture and return it
+            :param path The path to the image
+        """
+        cthief = ColorThief(path)
+        dcolor_tmp = cthief.get_color(quality=quality)
+        dcolor = []
+        for col in dcolor_tmp:
+            dcolor.append(round(col/255.0,2))
+        dcolor.append(1)
+        return dcolor
+    
+    def update_image(self, path):
+        """
+            Update the image and its backgroud
+            :param path The path to the image
+        """
+        for idx, col in enumerate(self._get_back_color(path, self.conf.background_quality)):
+            # Set the backgrounds properties
+            self.background_color[idx] = col
+        self.bcolor.rgba = self.background_color
+        #P Update the path
+        self.image.source = path
+
 
 class CarouselViewer(Carousel):
     """
        The Carousel Viewer expands the Carousel class to show images in a slideshow in a memory
        friendly manner.
     """
+    background_color = ListProperty([1, 1, 1 ,1])
     def __init__(self, **kwargs):
         """
             Init function, calls the parent class plus images to be shown
@@ -46,7 +94,8 @@ class CarouselViewer(Carousel):
         # Create the firs images that are going to be shown 
         self.images = []
         for path in self.current_paths:
-            img = Image(source=path,allow_stretch=True, size=Window.size, nocache=True)
+            img = FullImage()
+            img.update_image(path)
             self.images.append(img)
         # We add the widgets in a separate loop, because this will trigger an on_index event
         for img in self.images:     
@@ -65,7 +114,6 @@ class CarouselViewer(Carousel):
             Callback for the load next picture
         """
         self.load_next()
-
 
     def on_index(self, *args):
         """
@@ -93,7 +141,7 @@ class CarouselViewer(Carousel):
                 # Save the current image to the seen queue
                 self.picbuffers.add_to_seen(self.current_paths[index_update])
                 src = self.picbuffers.get_next_picture()[0]
-                self.images[index_update].source = src
+                self.images[index_update].update_image(src)
                 self.current_paths[index_update] = src
         else:
             # Save the current image to the next queue
@@ -104,7 +152,7 @@ class CarouselViewer(Carousel):
                 undo_index_update = (self.previous_idx + 3) % self.conf.max_slides
                 to_next = self.current_paths[undo_index_update]
                 self.picbuffers.add_to_next(to_next, 'front')
-                self.images[undo_index_update].source = src
+                self.images[undo_index_update].update_image(src)
                 self.current_paths[undo_index_update] = src
                 src = self.picbuffers.get_last_from_seen()[0]
             if src:
@@ -113,7 +161,7 @@ class CarouselViewer(Carousel):
                 # If something is found add it
                 to_next = self.current_paths[index_update]
                 self.picbuffers.add_to_next(to_next,'front')
-                self.images[index_update].source = src
+                self.images[index_update].update_image(src)
                 self.current_paths[index_update] = src
             else:
                 # There is nothing to show, deactivate looping
@@ -139,7 +187,7 @@ class CarouselViewer(Carousel):
             self.picbuffers.remove_blacklisted(self.current_paths[self.index])
             # Get the next picture and load it immediately
             src = self.picbuffers.get_next_picture()[0]
-            self.images[self.index].source = src
+            self.images[self.index].update_image(src)
             self.current_paths[self.index] = src
             # Call the parent method to fo whatever was called to do
             super(CarouselViewer, self).on_touch_down(touch)
@@ -154,9 +202,3 @@ class CarouselViewer(Carousel):
         self.clk = Clock.schedule_interval(self.load_next_cb, self.conf.delay_pics)
         super(CarouselViewer, self).on_touch_up(touch)    
 
-class FrameApp(App):
-    def build(self):
-        return CarouselViewer()
-
-if __name__ == '__main__':
-    FrameApp().run()

@@ -1,4 +1,4 @@
-from ConfigParser import SafeConfigParser
+from kivy.config import ConfigParser
 import os
 
 class FrameConfiguration():
@@ -9,7 +9,8 @@ class FrameConfiguration():
                  possible_directions=['right','left','top','bottom'], allow_shuffle=True,
                  max_slides=5, configured_folder=None, use_database=True, 
                  database_path='../frame_state.json',show_time=True,clock_refresh=1,clock_format='24h',
-                 show_weather=True, api_key_path='../openweathermap_key', weather_refresh=30):
+                 show_weather=True, api_key_path='../openweathermap_key', weather_refresh=30,
+                 background_quality=10):
         """
             Init class with defaul values
         """
@@ -29,7 +30,8 @@ class FrameConfiguration():
         self.api_key = self._read_apikey_from_file(api_key_path)
         self.weather_refresh = weather_refresh
         self.location = [None, None]
-        self.ini = SafeConfigParser()
+        self.ini = ConfigParser()
+        self.background_quality=background_quality
         if os.path.isfile(config_file):
             #TODO: Implement a config file searching function
             self.ini.read(config_file)
@@ -74,3 +76,4 @@ class FrameConfiguration():
         self.api_key = self._read_apikey_from_file(self.api_key_path)
         self.weather_refresh =  self.ini.getint('WeatherConfiguration','RefreshRate')
         self.location = [self.ini.get('WeatherConfiguration','Country'), self.ini.get('WeatherConfiguration','City')]
+        self.background_quality=self.ini.getint('FrameConfiguration','BackgroundQuality')

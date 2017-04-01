@@ -1,4 +1,5 @@
 from kivy.app import App
+from kivy.properties import ListProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from carousel_viewer import CarouselViewer
@@ -10,7 +11,9 @@ class FrameScreen(FloatLayout):
         This class handles the frame application
     """
     pass
+
 class FrameScreenApp(App):
+    background_color = ListProperty([1, 1, 1, 1 ])
     def build(self):
         return FrameScreen()
     #TODO: ALL this has to be improved to check properly for the file

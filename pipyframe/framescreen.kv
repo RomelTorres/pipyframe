@@ -1,6 +1,7 @@
 #:kivy 1.8.0
 <FrameScreen>
     CarouselViewer:
+        id:car_viewer
         auto_bring_to_front: False
     ClockViewer:
         id:clock_viewer
@@ -9,11 +10,10 @@
         size_hint:(None,None)
         Label:
             id: ctimer_label
-            do_collide_after_children: True
             markup:True
-            font_name:'../docs/fonts/bevan/Bevan-Regular.ttf'
+            font_name:'../docs/fonts/londrinasolid/LondrinaSolid-Regular.ttf'
             size: self.texture_size
-            text:clock_viewer.ctime_text
+            text:clock_viewer.ctimer_text
     WeatherViewer:
         id:weather_viewer
         auto_bring_to_front: True
@@ -25,7 +25,7 @@
             markup:True
             size:self.texture_size
             text:weather_viewer.weather_text
-            font_name:'../docs/fonts/bevan/Bevan-Regular.ttf'
+            font_name:'../docs/fonts/londrinasolid/LondrinaSolid-Regular.ttf'
             pos:(0, -weather_viewer.height/2 + 20)
         Image:
             id: weather_image
