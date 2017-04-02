@@ -1,0 +1,72 @@
+[{
+  "type": "title", 
+  "title": "Frame Settings"}, 
+{
+  "section": "FrameBehaviour", 
+  "desc": "Set how long to wait for a new picture to be loaded", 
+  "type": "numeric", 
+  "key": "delaybetweenpics", 
+  "title": "Delay Between Pictures (s)"}, 
+{
+  "section": "FrameBehaviour", 
+  "desc": "Allow the pictures to be shown in a random direction", 
+  "type": "bool", 
+  "key": "randomdirection", 
+  "title": "Random Direction"},
+{
+  "section": "FrameBehaviour", 
+  "desc": "Allow Picture shuffling", 
+  "type": "bool", 
+  "key": "shufflepics", 
+  "title": "Allow the frame to shuffle pictures"}, 
+{
+  "section": "FrameConfiguration", 
+  "desc": "Folder to read pictures from", 
+  "type": "path", 
+  "key": "folder", 
+  "title": "Wich folder to use for the pics"}, 
+{
+  "section": "FrameConfiguration", 
+  "desc": "Use a small database to allow picture blacklisting", 
+  "type": "bool", 
+  "key": "usedatabase", 
+  "title":"Use Database"}, 
+{
+  "section": "FrameConfiguration", 
+  "desc": "How good should be the background recognition (smaller better-resource intense)", 
+  "type": "numeric", 
+  "key": "backgroundquality", 
+  "title":"Background Color Quality"}, 
+{
+  "section": "ClockConfiguration", 
+  "desc": "Show a clock on the screen", 
+  "type": "bool", 
+  "key": "showtime", 
+  "title":"Show Clock"}, 
+{
+  "section": "ClockConfiguration", 
+  "desc": "Clock refresh rate (s)", 
+  "type": "numeric", 
+  "key": "refreshrate", 
+  "title":"Refresh Rate"}, 
+{
+  "section": "ClockConfiguration", 
+  "desc": "Clock format 24h or 12h", 
+  "type": "options", 
+  "key": "format",
+  "options":["24h","12h"], 
+  "title":"Format"}, 
+{
+  "section": "WeatherConfiguration", 
+  "desc": "Show the weather on the screen", 
+  "type": "bool", 
+  "key": "showweather", 
+  "title":"Show Weather"}, 
+{
+  "section": "WeatherConfiguration", 
+  "desc": "Path to the file where the api key is stored", 
+  "type": "path", 
+  "key": "apikeypath", 
+  "title":"Api Key path"} 
+]
+

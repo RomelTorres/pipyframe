@@ -5,6 +5,8 @@ from kivy.uix.scatter import Scatter
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.image import Image
 from kivy.uix.gridlayout import GridLayout
+from kivy.properties import StringProperty
+from frame_config import FrameConfiguration
 from math import ceil
 import time
 import os
@@ -18,15 +20,13 @@ class WeatherViewer(ScatterLayout):
     def __init__(self, **kwargs):
         super(WeatherViewer, self).__init__(**kwargs)
         # Allow the Viewer tobe on the fron when touched
+        self.conf = FrameConfiguration() 
         self.auto_bring_to_front = True
-        api_key = ''
-        with open('../openweathermap_key','r') as f:
-            api_key = ''.join(f.readlines()).strip()
-        owm = pyowm.OWM(api_key)
+        owm = pyowm.OWM(self.conf.api_key)
         self.city_weather = owm.weather_at_place('Lingen,DE')
         self.weather_icon = self._get_current_weather_image()
         self.weather_text = self._get_current_weather()
-        self.clk = Clock.schedule_interval(self.update_weather,30)
+        self.clk = Clock.schedule_interval(self.update_weather,self.conf.weather_refresh)
 
     def on_touch_up(self, touch):
         """
@@ -43,7 +43,7 @@ class WeatherViewer(ScatterLayout):
         """
         weather = self.city_weather.get_weather()
         # TODO get city from here
-        weather_str = '[size=35]Lingen :[/size][size=35] {}°C [/size]'.format(
+        weather_str = '[color=148F77][b][size=55]Lingen :[/size][size=55] {}°C [/size][/b][/color]'.format(
         int(ceil(weather.get_temperature(unit='celsius').get('temp'))))
         return weather_str
 
@@ -56,6 +56,7 @@ class WeatherViewer(ScatterLayout):
         #TODO: This has to be tested to always find the incons and be coonfigurable
         path =  os.path.join('../docs/weather_icons','{}.png'.format(icon_id))
         return path
+
     def _get_current_weather_image(self):
         weather = self.city_weather.get_weather()
         icon = weather.get_weather_icon_name()
@@ -70,12 +71,14 @@ class ClockViewer(ScatterLayout):
         This class handles the time information that is shown 
         to the user
     """
+    ctimer_text = StringProperty("")
     def __init__(self, **kwargs):
         super(ClockViewer, self).__init__(**kwargs)
         # Allow it to get always into the front on being touched
+        self.conf = FrameConfiguration()
         self.auto_bring_to_front = True
-        self.ctime_text = self._get_current_date()
-        self.clk = Clock.schedule_interval(self.update_time, 1)
+        self.ctimer_text = self._get_current_date()
+        self.clk = Clock.schedule_interval(self.update_time, int(self.conf.clock_refresh))
 
     def on_touch_up(self, touch):
         """
@@ -91,11 +94,16 @@ class ClockViewer(ScatterLayout):
         """
             Return the current data with the desired configuration
         """
-        return time.strftime('[size=55]%H:%M:%S[/size]\n[size=25]%a, %d %B[/size]')
+        if '24h' in self.conf.clock_format:
+            date_str = '[color=148F77][b][size=55]%H:%M:%S[/size]\n[size=25]%a, %d %B[/size][/color][/b]'
+        else:
+            date_str = '[color=148F77][b][size=55]%I:%M:%S[/size][size=25] %p[/size]\n[size=25]%a, %d %B[/size][/b][/color]'
+        return time.strftime(date_str)
 
     def update_time(self,dt):
         """
             This function does the update of the time on screen
         """
-        self.ctime_text = self._get_current_date()
+        self.ctimer_text = self._get_current_date()
+
 

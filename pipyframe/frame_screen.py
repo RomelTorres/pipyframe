@@ -1,4 +1,5 @@
 from kivy.app import App
+from kivy.properties import ListProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from carousel_viewer import CarouselViewer
@@ -12,8 +13,21 @@ class FrameScreen(FloatLayout):
     pass
 
 class FrameScreenApp(App):
+    background_color = ListProperty([1, 1, 1, 1 ])
     def build(self):
         return FrameScreen()
+    #TODO: ALL this has to be improved to check properly for the file
+    def get_application_config(self):
+        return ('../config.ini')
+
+    def build_config(self, config):
+        config.read('../config.ini')
+
+
+
+    def build_settings(self, settings):
+        #TODO: Add a function looking for this json file
+        settings.add_json_panel('Frame Settings', self.config,'../settings.json')
 
 if __name__ == '__main__':
     FrameScreenApp().run()
