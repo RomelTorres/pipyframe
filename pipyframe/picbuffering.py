@@ -4,7 +4,6 @@ from collections import deque
 from magic import Magic, MAGIC_MIME_ENCODING
 from random import shuffle
 import os
-
 """
     This class handles the picture buffer and its associated methods
 """
