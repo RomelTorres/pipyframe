@@ -1,5 +1,6 @@
 from kivy.config import ConfigParser
 import os
+import sys
 
 class FrameConfiguration():
     """
@@ -21,23 +22,104 @@ class FrameConfiguration():
         self.max_slides = max_slides
         self.configured_folder = configured_folder
         self.use_database = use_database
-        self.database_path = database_path
         self.show_time = show_time
         self.clock_refresh = clock_refresh
         self.clock_format = clock_format
         self.show_weather = show_weather
-        self.api_key_path = api_key_path
-        self.api_key = self._read_apikey_from_file(api_key_path)
         self.weather_refresh = weather_refresh
         self.location = [None, None]
         self.ini = ConfigParser()
         self.background_quality=background_quality
+        # Try using what has been provided
+        # if it does not work, look it up
+        if os.path.isfile(database_path):
+            self.database_path = database_path
+        else:
+            self.database_path = FrameConfiguration.find_db_file()
         if os.path.isfile(config_file):
-            #TODO: Implement a config file searching function
-            self.ini.read(config_file)
-            self.load_from_ini()
+            self.config_file = config_file
+        else:
+            cfile = FrameConfiguration.find_config_file()
+            if cfile:
+                self.config_file = cfile
+            else:
+                #TODO: ERROR handling
+                print('No configuration found, left with defaults') 
+        if os.path.isfile(api_key_path):
+            self.api_key_path = api_key_path
+        else:
+            self.api_key_path = FrameConfiguration.find_apikey_file()
+        self.api_key = self._read_apikey_from_file(api_key_path)
+        self.ini.read(self.config_file)
+        self.load_from_ini()
 
-    def _read_apikey_from_file(elf, api_file):
+    @staticmethod
+    def find_config_file():
+        """
+            This function returns the configuration file path
+            for the application, it can be saved in /etc/pipyframe
+            or bundled with the app
+            :return path to config file if found None otherwise
+        """
+        # By default here is where the config file should be stored
+        path = '/etc/pipyframe/config.ini'
+        if os.path.isfile(path):
+            return path
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.path.pardir)
+        path = os.path.abspath(os.path.join(path,'config.ini'))
+        if os.path.isfile(path):
+            return path
+        return None
+
+    @staticmethod
+    def find_apikey_file():
+        """
+            This function returns the path to where the api key is stored
+            :return path to stored api key
+        """
+        # By default here is where the config file should be stored
+        path = '/etc/pipyframe/openweathermap_key'
+        if os.path.isfile(path):
+            return path
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.path.pardir)
+        path = os.path.abspath(os.path.join(path,'openweathermap_key'))
+        if os.path.isfile(path):
+            return path
+        return None
+    @staticmethod
+    def find_settings_file():
+        """
+            Find the settings file for the settings panel, it can be saved
+            in /etc/pipyframe or bundled with the app
+            :return path to settings config file if found None otherwise
+        """
+        # By default here is where the config file should be stored
+        path = '/etc/pipyframe/settings.json'
+        if os.path.isfile(path):
+            return path
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.path.pardir)
+        path = os.path.abspath(os.path.join(path,'settings.json'))
+        if os.path.isfile(path):
+            return path
+        return None
+    
+    @staticmethod
+    def find_db_file():
+        """
+            Find the db file for the app, it can be saved
+            in /var/pipyframe or bundled with the app
+            :return path to settings config file
+        """
+        # By default here is where the config file should be stored
+        path = '/var/pipyframe/frame_state.json'
+        if os.path.isfile(path):
+            return path
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.path.pardir)
+        path = os.path.abspath(os.path.join(path,'frame_state.json'))
+        return path
+
+    @staticmethod
+    def _read_apikey_from_file(api_file):
         '''
             Read the api key from a given file
             :param api_file the name of the file where the api is 
@@ -65,15 +147,23 @@ class FrameConfiguration():
         self.configured_folder = self.ini.get('FrameConfiguration','Folder')
         self.use_database = self.ini.get('FrameConfiguration','UseDatabase')
         if self.use_database:
-            self.database_path = self.ini.get('FrameConfiguration','DatabasePath')
+            path =  self.ini.get('FrameConfiguration','DatabasePath')
+            if os.path.isfile(path):
+                self.database_path = path
+            else:
+                self.database_path = FrameConfiguration.find_db_file()
         else:
             self.database_path = None
         self.show_time = self.ini.getboolean('ClockConfiguration','ShowTime')
         self.clock_refresh = self.ini.getint('ClockConfiguration','RefreshRate')
         self.clock_format = self.ini.get('ClockConfiguration','Format')
         self.show_weather = self.ini.getboolean('WeatherConfiguration','ShowWeather')
-        self.api_key_path = self.ini.get('WeatherConfiguration','ApiKeyPath')
-        self.api_key = self._read_apikey_from_file(self.api_key_path)
+        key_path = self.ini.get('WeatherConfiguration','ApiKeyPath')
+        if os.path.isfile(key_path):
+            self.api_key_path = key_path
+        else:
+            self.api_key_path = FrameConfiguration.find_apikey_file()
+        self.api_key = FrameConfiguration._read_apikey_from_file(self.api_key_path)
         self.weather_refresh =  self.ini.getint('WeatherConfiguration','RefreshRate')
         self.location = [self.ini.get('WeatherConfiguration','Country'), self.ini.get('WeatherConfiguration','City')]
         self.background_quality=self.ini.getint('FrameConfiguration','BackgroundQuality')

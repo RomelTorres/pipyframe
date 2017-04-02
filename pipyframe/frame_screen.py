@@ -4,6 +4,7 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
 from carousel_viewer import CarouselViewer
 from infos_viewer import ClockViewer
+from frame_config import FrameConfiguration
 import time
 
 class FrameScreen(FloatLayout):
@@ -13,21 +14,23 @@ class FrameScreen(FloatLayout):
     pass
 
 class FrameScreenApp(App):
-    background_color = ListProperty([1, 1, 1, 1 ])
+    """
+        App to run the pipyframe
+    """
     def build(self):
         return FrameScreen()
-    #TODO: ALL this has to be improved to check properly for the file
+    
     def get_application_config(self):
-        return ('../config.ini')
+        return FrameConfiguration.find_config_file()
 
     def build_config(self, config):
-        config.read('../config.ini')
-
-
+        config_path = FrameConfiguration.find_config_file() 
+        config.read(config_path)
 
     def build_settings(self, settings):
         #TODO: Add a function looking for this json file
-        settings.add_json_panel('Frame Settings', self.config,'../settings.json')
+        settings_file = FrameConfiguration.find_settings_file()
+        settings.add_json_panel('Frame Settings', self.config, settings_file)
 
 if __name__ == '__main__':
     FrameScreenApp().run()
