@@ -32,6 +32,12 @@
   "key": "usedatabase", 
   "title":"Use Database"}, 
 {
+  "section": "FrameConfiguration", 
+  "desc": "How good should be the background recognition (smaller better-resource intense)", 
+  "type": "numeric", 
+  "key": "backgroundquality", 
+  "title":"Background Color Quality"}, 
+{
   "section": "ClockConfiguration", 
   "desc": "Show a clock on the screen", 
   "type": "bool", 
