@@ -20,7 +20,11 @@ class FrameConfiguration():
         self.possible_directions =possible_directions
         self.allow_shuffle = allow_shuffle
         self.max_slides = max_slides
-        self.configured_folder = configured_folder
+        if configured_folder:
+            if os.path.isdir(configured_folder):
+                self.configured_folder = configured_folder
+        else:
+            self.configured_folder = None
         self.use_database = use_database
         self.show_time = show_time
         self.clock_refresh = clock_refresh
@@ -52,6 +56,8 @@ class FrameConfiguration():
         self.api_key = self._read_apikey_from_file(api_key_path)
         self.ini.read(self.config_file)
         self.load_from_ini()
+        if not self.configured_folder:
+            raise ValueError('Cannot proceed to app if no folder for pics is configured')
 
     @staticmethod
     def find_config_file():
@@ -144,7 +150,17 @@ class FrameConfiguration():
         allow_shuffle = self.ini.getboolean('FrameBehaviour','ShufflePics')
         # This is the size of loaded slides from the Carousel kivy component
         self.max_slides = self.ini.getint('FrameBehaviour','BufferSize')
-        self.configured_folder = self.ini.get('FrameConfiguration','Folder')
+        configured_folder = self.ini.get('FrameConfiguration','Folder')
+        # TODO: Improve the Error handling, by transfering this to a function 
+        if os.path.isdir(configured_folder):
+            self.configured_folder = configured_folder
+        else:
+            if configured_folder.startswith('~'):
+                configured_folder = os.path.expanduser(configured_folder)
+                if os.path.isdir(configured_folder):
+                    self.configured_folder = configured_folder
+                else:
+                    self.configured_folder = None
         self.use_database = self.ini.get('FrameConfiguration','UseDatabase')
         if self.use_database:
             path =  self.ini.get('FrameConfiguration','DatabasePath')

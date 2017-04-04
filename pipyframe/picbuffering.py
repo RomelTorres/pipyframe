@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from collections import deque
-from magic import Magic, MAGIC_MIME_ENCODING
 from random import shuffle
 import os
+from imghdr import what
 """
     This class handles the picture buffer and its associated methods
 """
@@ -124,12 +124,18 @@ class PicBuffering:
         Add images from a given folder to the next_picture queue
         :param path: The path to the folder
         """
-        with Magic(flags=MAGIC_MIME_ENCODING) as mag:
-            files = [os.path.join(path, file) for (path, dirs, files) in os.walk(pathin) 
-                     for file in files if 'image' or 'video' in  mag.id_filename(file)]
+        # Get the files from the given folder and analyze if they are
+        # images or not
+        the_files = []
+        for (path, dirs, files) in os.walk(pathin):
+            for the_file in files:
+                path_file = os.path.join(path, the_file)
+                if what(path_file) is not None:
+                    the_files.append(path_file)
+        # shuffle if requested
         if allow_shuffle:
-            shuffle(files)
-        for path in files:
+            shuffle(the_files)
+        for path in the_files:
             # Check that the new pictures are not in the next picture queue
             if path not in self.next_picture:
                 # If a database has been given, add it to it

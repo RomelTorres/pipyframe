@@ -123,4 +123,3 @@ Session.vim
 tags
 # Application related ignores
 *state.json
-*map_key
