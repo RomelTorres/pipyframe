@@ -19,7 +19,8 @@ setup(
     url = "https://github.com/RomelTorres/pipyframe",
     install_requires=['tinydb',
                      'colorthief',
-                     'pyowm'],
+                     'pyowm',
+                     'cprofile'],
     packages=['pipyframe', 'tests', 'pyown'],
     long_description=read('README'),
 )

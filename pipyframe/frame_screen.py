@@ -1,4 +1,5 @@
 from kivy.app import App
+from kivy.config import Config
 from kivy.properties import ListProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.floatlayout import FloatLayout
@@ -7,6 +8,7 @@ from carousel_viewer import CarouselViewer
 from infos_viewer import ClockViewer
 from frame_config import FrameConfiguration
 import time
+import cProfile
 
 class FrameScreen(FloatLayout):
     """
@@ -46,7 +48,20 @@ class FrameScreenApp(App):
     """
         App to run the pipyframe
     """
+    def on_start(self):
+        conf = FrameConfiguration()
+        if conf.profile:
+            self.profile = cProfile.Profile()
+            self.profile.enable()
+
+    def on_stop(self):
+        conf = FrameConfiguration()
+        if conf.profile:
+            self.profile.disable()
+            self.profile.dump_stats('FrameScreenApp.profile')
+
     def build(self):
+        Config.set('kivy','keyboard_mode','systemanddock')
         return FrameScreen()
     
     def get_application_config(self):

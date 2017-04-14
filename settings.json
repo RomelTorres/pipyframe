@@ -79,6 +79,12 @@
   "desc": "Path to the file where the api key is stored", 
   "type": "path", 
   "key": "apikeypath", 
-  "title":"Api Key path"} 
+  "title":"Api Key path"}, 
+{
+  "section": "Developer", 
+  "desc": "Activate profiling", 
+  "type": "bool", 
+  "key": "profile", 
+  "title":"Profiler"} 
 ]
 
