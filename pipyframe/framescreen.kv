@@ -6,28 +6,30 @@
     ClockViewer:
         id:clock_viewer
         auto_bring_to_front: True
-        pos:(root.width - ctimer_label.width - 120, 20)
-        size_hint:(None,None)
+        size_hint:(None, None)
+        size:(ctimer_label.width, ctimer_label.height)
+        pos:(root.width - self.width - 10, ctimer_label.height/2)
         Label:
             id: ctimer_label
             markup:True
             font_name:'../docs/fonts/londrinasolid/LondrinaSolid-Regular.ttf'
             size: self.texture_size
+            pos:(0, 0)
             text:clock_viewer.ctimer_text
     WeatherViewer:
         id:weather_viewer
         auto_bring_to_front: True
-        pos:(60,10)
-        size_hint:(None,None)
-        size:(180,180)
+        size_hint:(None, None)
+        size:(weather_image.width, weather_image.height)
         Label:
             id: cweather_label
             markup:True
             size:self.texture_size
             text:weather_viewer.weather_text
             font_name:'../docs/fonts/londrinasolid/LondrinaSolid-Regular.ttf'
-            pos:(0, -weather_viewer.height/2 + 20)
+            pos:(0, 0)
         Image:
             id: weather_image
-            pos:(0,0)
+            pos:(0, cweather_label.height/2)
+            size:(root.width*15/100, root.height*15/100)
             source:weather_viewer.weather_icon

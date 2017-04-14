@@ -8,7 +8,7 @@ class FrameConfiguration():
     """
     def __init__(self, config_file='../config.ini', delay_pics = 10, random_direction=True,
                  possible_directions=['right','left','top','bottom'], allow_shuffle=True,
-                 max_slides=5, configured_folder=None, use_database=True, 
+                 max_slides=5, configured_folder=None, use_database=True, icon_perc=20, 
                  database_path='../frame_state.json',show_time=True,clock_refresh=1,clock_format='24h',
                  show_weather=True, api_key_path='../openweathermap_key', weather_refresh=30,
                  background_quality=10):
@@ -32,6 +32,7 @@ class FrameConfiguration():
         self.show_weather = show_weather
         self.weather_refresh = weather_refresh
         self.location = [None, None]
+        self.icon_perc = icon_perc
         self.ini = ConfigParser()
         self.background_quality=background_quality
         # Try using what has been provided
@@ -147,6 +148,7 @@ class FrameConfiguration():
         self.delay_pics = self.ini.getint('FrameBehaviour','delayBetweenPics')
         self.random_direction = self.ini.getboolean('FrameBehaviour','RandomDirection')
         self.possible_directions = [d for d in self.ini.get('FrameBehaviour','PossibleDirections').split(',') if d]
+        self.icon_perc = self.ini.getint('FrameConfiguration','IconSizePercentage')
         allow_shuffle = self.ini.getboolean('FrameBehaviour','ShufflePics')
         # This is the size of loaded slides from the Carousel kivy component
         self.max_slides = self.ini.getint('FrameBehaviour','BufferSize')
