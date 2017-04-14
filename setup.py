@@ -18,7 +18,8 @@ setup(
     keywords = "kivy raspberrypi frame slideshow",
     url = "https://github.com/RomelTorres/pipyframe",
     install_requires=['tinydb',
-                     'colorthief'],
+                     'colorthief',
+                     'pyowm'],
     packages=['pipyframe', 'tests', 'pyown'],
     long_description=read('README'),
 )

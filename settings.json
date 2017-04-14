@@ -20,11 +20,23 @@
   "key": "shufflepics", 
   "title": "Allow the frame to shuffle pictures"}, 
 {
+  "section": "FrameBehaviour", 
+  "desc": "How long must the user press down in order to call the settings screen", 
+  "type": "numeric", 
+  "key": "settingstime", 
+  "title": "Time for settings"}, 
+{
   "section": "FrameConfiguration", 
   "desc": "Folder to read pictures from", 
   "type": "path", 
   "key": "folder", 
   "title": "Wich folder to use for the pics"}, 
+{
+  "section": "FrameConfiguration", 
+  "desc": "Percentage of the screen size for the icons/labels", 
+  "type": "numeric", 
+  "key": "iconsizepercentage", 
+  "title": "Icon percentage size"}, 
 {
   "section": "FrameConfiguration", 
   "desc": "Use a small database to allow picture blacklisting", 
