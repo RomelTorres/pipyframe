@@ -2,8 +2,13 @@
 
 from collections import deque
 from random import shuffle
-import os
+from PIL import Image
 from imghdr import what
+from kivy.core.window import Window
+from threading import Thread
+import os
+import piexif
+
 """
     This class handles the picture buffer and its associated methods
 """
@@ -130,7 +135,9 @@ class PicBuffering:
         for (path, dirs, files) in os.walk(pathin):
             for the_file in files:
                 path_file = os.path.join(path, the_file)
-                if what(path_file) is not None:
+                file_type = what(path_file)
+                if file_type is not None:
+                    self._resize_picture(path_file)
                     the_files.append(path_file)
         # shuffle if requested
         if allow_shuffle:
@@ -144,6 +151,33 @@ class PicBuffering:
                     if not blacklisted:
                         self.database.add_picture_to_db(path, os.path.splitext(path)[1])
                 self.add_to_next(path)
+
+    def _resize_picture(self, path):
+        """
+            Resize a picture saving its exif info
+            :param path the image's path
+        """ 
+        with Image.open(path) as image:
+            try:
+                orgInfo = image.info
+            except Exception:
+                orgInfo = None
+            width, height = image.size
+            #So that we don't resize all the time
+            if (width > Window.width) or (height > Window.height):
+                # This does a resize of the picture and saves it with that name, 
+                # TODO: add a setting where we store this pictures resized somewhere
+                # as to not damage original data
+                file_type = what(path)
+                if orgInfo:
+                    image.thumbnail(Window.size, Image.ANTIALIAS)
+                    #Delete the original image
+                    os.remove(path)
+                    image.save(path, file_type, exif=orgInfo['exif'])
+                else:
+                    image.thumbnail(Window.size, Image.ANTIALIAS)
+                    os.remove(path)
+                    image.save(path,file_type)
 
     def remove_blacklisted(self, path):
         """
