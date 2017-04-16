@@ -1,4 +1,5 @@
-from kivy.properties import ListProperty
+import PIL.Image as PILImage
+from kivy.properties import ListProperty, NumericProperty
 from kivy.graphics.context_instructions import Color
 from kivy.graphics import Rectangle
 from kivy.uix.carousel import Carousel
@@ -15,6 +16,29 @@ from frame_config import FrameConfiguration
 import os
 import timeit
 
+class RotatedImage(Image):
+    angle = NumericProperty()
+    
+    def get_rotation(self):
+        """
+        Return the amount of rotation that should be applied to the image.
+        Return 0 if no EXIF info is found.
+        """
+        img = PILImage.open(self.source)
+        # TODO: Look for non protected member? ExifRead module?
+        if hasattr(img, '_getexif'):
+            exif_data = img._getexif()
+            if exif_data:
+                rotation = exif_data.get(274, None)
+                if rotation is not None:
+                    if rotation == 3:
+                        return 180
+                    elif rotation == 6:
+                        return 270
+                    elif rotation == 8:
+                        return 90
+        return 0
+
 class FullImage(FloatLayout):
     """
         This class handles the image to show the user, with an interactive 
@@ -25,7 +49,8 @@ class FullImage(FloatLayout):
     def __init__(self, **kwargs):
         super(FullImage, self).__init__(**kwargs)
         self.conf = FrameConfiguration()
-        self.image = Image(allow_stretch=True, nocache=True)
+        self.image = RotatedImage(nocache=True)
+        self.image.angle = 90
         self.bcolor = Color(self.background_color)
         self.canvas.add(self.bcolor)
         self.canvas.add(Rectangle(pos=self.pos, size=Window.size))
@@ -55,7 +80,8 @@ class FullImage(FloatLayout):
         self.bcolor.rgba = self.background_color
         #P Update the path
         self.image.source = path
-
+        self.image.reload()
+        self.image.angle = self.image.get_rotation()
 
 class CarouselViewer(Carousel):
     """

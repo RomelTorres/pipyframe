@@ -33,3 +33,11 @@
             pos:(0, cweather_label.height/2)
             size:(root.width*15/100, root.height*15/100)
             source:weather_viewer.weather_icon
+<RotatedImage>
+    canvas.before:
+        PushMatrix
+        Rotate:
+            angle:root.angle
+            origin: root.center
+    canvas.after:
+        PopMatrix

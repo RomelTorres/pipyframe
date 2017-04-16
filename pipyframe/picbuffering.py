@@ -5,6 +5,7 @@ from random import shuffle
 from PIL import Image
 from imghdr import what
 from kivy.core.window import Window
+from threading import Thread
 import os
 import piexif
 
@@ -151,71 +152,32 @@ class PicBuffering:
                         self.database.add_picture_to_db(path, os.path.splitext(path)[1])
                 self.add_to_next(path)
 
-    def _find_optimal_size(self, path):
-        """
-            Find the optimal size for an image
-        """
-        image = Image.open(path)
-        width, height = image.size
-        exit = False
-        step = 0.95
-        if (width > Window.width) or (height > Window.height):
-            # Image is bigger than the screen we want to desplay it in
-            new_width = width
-            new_height = height
-            while(exit == False):
-                # TODO quite slow, can be better
-                if ((new_width > Window.width) or (new_height > Window.height)):
-                    new_width =new_width*step
-                    new_height = new_height*step
-                else:
-                    exit = True
-            return [int(new_width),int(new_height)]
-        else:
-            return image.size
-
     def _resize_picture(self, path):
         """
             Resize a picture saving its exif info
             :param path the image's path
         """ 
-        image = Image.open(path)
-        try:
-            exif_dict = piexif.load(image.info["exif"])
-        except Exception:
-            exif_dict = None
-        width, height = image.size
-        #So that we don't resize all the time
-        if (width > Window.width) or (height > Window.height):
-            new_size = self._find_optimal_size(path)
-            # This does a resize of the picture and saves it with that name, 
-            # TODO: add a setting where we store this pictures resized somewhere
-            # as to not damage original data
-            file_type = what(path)
-            image.thumbnail(new_size, Image.ANTIALIAS)
-            if exif_dict:
-                """
-                if piexif.ImageIFD.Orientation in exif_dict["0th"]:
-                    print('Rotating image')
-                    orientation = exif_dict["0th"].pop(piexif.ImageIFD.Orientation)
-                    if orientation == 2:
-                        image = image.transpose(Image.FLIP_LEFT_RIGHT)
-                    elif orientation == 3:
-                        image = image.rotate(180)
-                    elif orientation == 4:
-                        image = image.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
-                    elif orientation == 5:
-                        image = image.rotate(-90).transpose(Image.FLIP_LEFT_RIGHT)
-                    elif orientation == 6:
-                        image = image.rotate(-90)
-                    elif orientation == 7:
-                        image = image.rotate(90).transpose(Image.FLIP_LEFT_RIGHT)
-                    elif orientation == 8:
-                        image = image.rotate(90)"""
-                exif_bytes = piexif.dump(exif_dict)
-                image.save(path,file_type, exif=exif_bytes)
-            else:
-                image.save(path,file_type)
+        with Image.open(path) as image:
+            try:
+                orgInfo = image.info
+            except Exception:
+                orgInfo = None
+            width, height = image.size
+            #So that we don't resize all the time
+            if (width > Window.width) or (height > Window.height):
+                # This does a resize of the picture and saves it with that name, 
+                # TODO: add a setting where we store this pictures resized somewhere
+                # as to not damage original data
+                file_type = what(path)
+                if orgInfo:
+                    image.thumbnail(Window.size, Image.ANTIALIAS)
+                    #Delete the original image
+                    os.remove(path)
+                    image.save(path, file_type, exif=orgInfo['exif'])
+                else:
+                    image.thumbnail(Window.size, Image.ANTIALIAS)
+                    os.remove(path)
+                    image.save(path,file_type)
 
     def remove_blacklisted(self, path):
         """
